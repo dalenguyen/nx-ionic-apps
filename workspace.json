@@ -5,7 +5,7 @@
       "projectType": "application",
       "root": "apps/photo-gallery",
       "sourceRoot": "apps/photo-gallery/src",
-      "prefix": "nx-ionic-apps",
+      "prefix": "apps",
       "targets": {
         "build": {
           "executor": "@angular-devkit/build-angular:browser",
@@ -90,9 +90,7 @@
         },
         "test": {
           "executor": "@nrwl/jest:jest",
-          "outputs": [
-            "coverage/apps/photo-gallery"
-          ],
+          "outputs": ["coverage/apps/photo-gallery"],
           "options": {
             "jestConfig": "apps/photo-gallery/jest.config.js",
             "passWithNoTests": true
@@ -202,9 +200,7 @@
         "lint": {
           "executor": "@nrwl/linter:eslint",
           "options": {
-            "lintFilePatterns": [
-              "apps/photo-gallery-e2e/**/*.{js,ts}"
-            ]
+            "lintFilePatterns": ["apps/photo-gallery-e2e/**/*.{js,ts}"]
           }
         }
       }

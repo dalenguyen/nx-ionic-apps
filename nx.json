@@ -1,5 +1,5 @@
 {
-  "npmScope": "nx-ionic-apps",
+  "npmScope": "apps",
   "affected": { "defaultBase": "master" },
   "implicitDependencies": {
     "package.json": { "dependencies": "*", "devDependencies": "*" },
