@@ -1,0 +1,13 @@
+{
+  "appId": "io.ionic.gallery",
+  "appName": "photo-gallery",
+  "bundledWebRuntime": false,
+  "npmClient": "yarn",
+  "webDir": "../../dist/apps/photo-gallery",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  },
+  "cordova": {}
+}
