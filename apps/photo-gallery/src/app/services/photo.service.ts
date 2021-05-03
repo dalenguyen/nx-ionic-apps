@@ -31,20 +31,53 @@ export class PhotoService {
         quality: 100,
       })
 
-      this.photos.unshift({
-        filepath: 'soon...',
-        webviewPath: capturedPhoto.webPath,
-      })
+      // Save the picture and add it to photo collection
+      const savedImageFile = await this._savePicture(capturedPhoto)
+      this.photos.unshift(savedImageFile)
 
-      // const capturedBased64Photo = await Camera.getPhoto({
-      //   resultType: CameraResultType.Base64,
-      //   source: CameraSource.Camera,
-      //   quality: 100,
-      // })
-
-      // console.log({ capturedBased64Photo })
+      console.log(this.photos)
     } catch (error) {
       console.log(error)
     }
   }
+
+  private async _savePicture(cameraPhoto: CameraPhoto): Promise<Photo> {
+    try {
+      // convert photo to base64 format, required by Filesystem API to save
+      const base64Data = await this._readAsBase64(cameraPhoto)
+
+      console.log({ base64Data })
+
+      // write the file to the data directory
+      const fileName = new Date().getTime() + '.jpeg'
+      const savedFile = await Filesystem.writeFile({
+        path: fileName,
+        data: base64Data,
+        directory: FilesystemDirectory.Data,
+      })
+
+      return {
+        filepath: fileName,
+        webviewPath: cameraPhoto.webPath,
+      }
+    } catch (error) {}
+  }
+
+  private async _readAsBase64(cameraPhoto: CameraPhoto) {
+    // Fetch the photo, read as a blob, then convert to base64 format
+    const response = await fetch(cameraPhoto.webPath!)
+    const blob = await response.blob()
+
+    return (await this.convertBlobToBase64(blob)) as string
+  }
+
+  convertBlobToBase64 = (blob: Blob) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onerror = reject
+      reader.onload = () => {
+        resolve(reader.result)
+      }
+      reader.readAsDataURL(blob)
+    })
 }
