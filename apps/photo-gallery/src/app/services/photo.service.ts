@@ -111,6 +111,32 @@ export class PhotoService {
     }
   }
 
+  async deletePicture(photo: Photo, position: number) {
+    try {
+      // Remove this photo from the Photos reference data array
+      this.photos.splice(position, 1)
+
+      // Update photos array cache by overwriting the existing photo arrays
+      Storage.set({
+        key: this.PHOTO_STORATE,
+        value: JSON.stringify(this.photos),
+      })
+
+      // delete photo file from filesystem
+      const fileName = photo.filepath.substr(
+        photo.filepath.lastIndexOf('/') + 1,
+      )
+      console.log({ fileName })
+
+      await Filesystem.deleteFile({
+        path: fileName,
+        directory: FilesystemDirectory.Data,
+      })
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   private async _readAsBase64(cameraPhoto: CameraPhoto) {
     try {
       // "hybrid" will detect Cordova or Capacitor
