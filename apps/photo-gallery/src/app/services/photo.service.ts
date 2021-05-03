@@ -7,6 +7,7 @@ import {
   CameraPhoto,
   CameraSource,
 } from '@capacitor/core'
+import { Platform } from '@ionic/angular'
 
 export interface Photo {
   filepath: string
@@ -21,8 +22,12 @@ const { Camera, Filesystem, Storage } = Plugins
 export class PhotoService {
   photos: Photo[] = []
   private PHOTO_STORATE: string = 'photos'
+  private platform: Platform
 
-  constructor() {}
+  constructor(platform: Platform) {
+    this.platform = platform
+    console.log('isHybrid', this.platform.is('hybrid'))
+  }
 
   async addNewToGallery() {
     try {
@@ -53,14 +58,18 @@ export class PhotoService {
       const photoList = await Storage.get({ key: this.PHOTO_STORATE })
       this.photos = JSON.parse(photoList.value) || []
 
-      for (const photo of this.photos) {
-        const readFile = await Filesystem.readFile({
-          path: photo.filepath,
-          directory: FilesystemDirectory.Data,
-        })
+      // Easiest way to detect when running on the web:
+      // "When the platform is NOT hybrid, do this"
+      if (!this.platform.is('hybrid')) {
+        for (const photo of this.photos) {
+          const readFile = await Filesystem.readFile({
+            path: photo.filepath,
+            directory: FilesystemDirectory.Data,
+          })
 
-        // web platform only: Load the photo as base64 data
-        photo.webviewPath = `data:image/jpeg;base64,${readFile.data}`
+          // web platform only: Load the photo as base64 data
+          photo.webviewPath = `data:image/jpeg;base64,${readFile.data}`
+        }
       }
     } catch (error) {
       console.error(error)
@@ -82,9 +91,20 @@ export class PhotoService {
         directory: FilesystemDirectory.Data,
       })
 
-      return {
-        filepath: fileName,
-        webviewPath: cameraPhoto.webPath,
+      if (this.platform.is('hybrid')) {
+        // Display the new image by rewriting the 'file://' path to HTTP
+        // Details: https://ionicframework.com/docs/building/webview#file-protocol
+        return {
+          filepath: savedFile.uri,
+          webviewPath: Capacitor.convertFileSrc(savedFile.uri),
+        }
+      } else {
+        // Use webPath to display the new image instead of base64 since it's
+        // already loaded into memory
+        return {
+          filepath: fileName,
+          webviewPath: cameraPhoto.webPath,
+        }
       }
     } catch (error) {
       console.error(error)
@@ -92,11 +112,24 @@ export class PhotoService {
   }
 
   private async _readAsBase64(cameraPhoto: CameraPhoto) {
-    // Fetch the photo, read as a blob, then convert to base64 format
-    const response = await fetch(cameraPhoto.webPath!)
-    const blob = await response.blob()
+    try {
+      // "hybrid" will detect Cordova or Capacitor
+      if (this.platform.is('hybrid')) {
+        // Read the file into base64 format
+        const file = await Filesystem.readFile({
+          path: cameraPhoto.path,
+        })
+        return file.data
+      } else {
+        // Fetch the photo, read as a blob, then convert to base64 format
+        const response = await fetch(cameraPhoto.webPath!)
+        const blob = await response.blob()
 
-    return (await this.convertBlobToBase64(blob)) as string
+        return (await this.convertBlobToBase64(blob)) as string
+      }
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   convertBlobToBase64 = (blob: Blob) =>
