@@ -51,6 +51,15 @@ nx run my-app:open:ios
 
 ```
 
+## Build & Deploying IOS
+
+```
+yarn build:gallery
+// Run add:ios once only
+nx run photo-gallery:add:ios
+yarn open:gallery:ios
+```
+
 ## References
 
 https://ionicframework.com/blog/?p=3663
