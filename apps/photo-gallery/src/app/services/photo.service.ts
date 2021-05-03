@@ -41,8 +41,6 @@ export class PhotoService {
       const savedImageFile = await this._savePicture(capturedPhoto)
       this.photos.unshift(savedImageFile)
 
-      console.log(this.photos)
-
       Storage.set({
         key: this.PHOTO_STORATE,
         value: JSON.stringify(this.photos),
@@ -80,8 +78,6 @@ export class PhotoService {
     try {
       // convert photo to base64 format, required by Filesystem API to save
       const base64Data = await this._readAsBase64(cameraPhoto)
-
-      console.log({ base64Data })
 
       // write the file to the data directory
       const fileName = new Date().getTime() + '.jpeg'
@@ -126,7 +122,6 @@ export class PhotoService {
       const fileName = photo.filepath.substr(
         photo.filepath.lastIndexOf('/') + 1,
       )
-      console.log({ fileName })
 
       await Filesystem.deleteFile({
         path: fileName,
