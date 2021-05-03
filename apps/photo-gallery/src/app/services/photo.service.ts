@@ -20,6 +20,7 @@ const { Camera, Filesystem, Storage } = Plugins
 })
 export class PhotoService {
   photos: Photo[] = []
+  private PHOTO_STORATE: string = 'photos'
 
   constructor() {}
 
@@ -36,8 +37,33 @@ export class PhotoService {
       this.photos.unshift(savedImageFile)
 
       console.log(this.photos)
+
+      Storage.set({
+        key: this.PHOTO_STORATE,
+        value: JSON.stringify(this.photos),
+      })
     } catch (error) {
-      console.log(error)
+      console.error(error)
+    }
+  }
+
+  async loadSaved() {
+    try {
+      // Retrieve cached photo array data
+      const photoList = await Storage.get({ key: this.PHOTO_STORATE })
+      this.photos = JSON.parse(photoList.value) || []
+
+      for (const photo of this.photos) {
+        const readFile = await Filesystem.readFile({
+          path: photo.filepath,
+          directory: FilesystemDirectory.Data,
+        })
+
+        // web platform only: Load the photo as base64 data
+        photo.webviewPath = `data:image/jpeg;base64,${readFile.data}`
+      }
+    } catch (error) {
+      console.error(error)
     }
   }
 
@@ -60,7 +86,9 @@ export class PhotoService {
         filepath: fileName,
         webviewPath: cameraPhoto.webPath,
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   private async _readAsBase64(cameraPhoto: CameraPhoto) {
