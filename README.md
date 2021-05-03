@@ -24,6 +24,12 @@ nx generate @nxtend/ionic-angular:app my-app
 yarn start
 ```
 
+## Generate Angular Service
+
+```
+nx generate @nrwl/angular:service services/photo --project my-app --dryRun
+```
+
 ## Shared Libraries
 
 ```
